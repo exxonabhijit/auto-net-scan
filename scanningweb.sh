@@ -39,6 +39,34 @@ perform_web_identification() {
     whatweb -v -a 3 "$domain" | sed 's/,/\n/g'
 }
 
+# Function to check if a host is up
+check_host_up() {
+    local host="$1"
+    echo "Checking if host $host is up..."
+    if ping -c 1 "$host" &> /dev/null; then
+        echo "Host $host is up."
+        return 0
+    else
+        echo "Host $host is down."
+        return 1
+    fi
+}
+
+# Function to display stylish shell banner
+display_banner() {
+echo "                                                 "
+echo "      _    _           _     _                   "    
+echo " | |  | |         | |   (_)                      "
+echo " | |__| | ___  ___| |_   _ ___   _   _ _ __      "
+echo " |  __  |/ _ \/ __| __| | / __| | | | | '_ \     " 
+echo " | |  | | (_) \__ \ |_  | \__ \ | |_| | |_) |    "
+echo " |_|  |_|\___/|___/\__| |_|___/  \__,_| .__/     "
+echo "                                      | |        "
+echo "                                      |_|        "
+echo "                                                 "
+echo "                                                 "
+}
+
 # Step 1: Asking the user to enter the target IP address or domain name
 echo "Step 1: Please enter the target IP address or domain name:"
 read target
@@ -104,9 +132,22 @@ echo "--------------------------------------------------------------------------
 echo "******* Web Identification for target "${selected_subdomains[@]}" Completed Successfully *******"
 echo "-------------------------------------------------------------------------------------------------"
     done
-echo "-------------------------------------------------------------------------------------------------"
-echo "******* Step 3 Web Identification Completed Successfully *******"
-echo "-------------------------------------------------------------------------------------------------"
 fi
 
+# Step 4: Check if the host is up using nmap
+echo "-------------------------------------------------------------------------------------------------"
+echo "Step 4: Checking if the host is up using nmap..."
+if check_host_up "$target"; then
+    echo "-------------------------------------------------------------------------------------------------"
+    echo "******* Host $target is Up *******"
+    echo "-------------------------------------------------------------------------------------------------"
+    display_banner
+    echo "-------------------------------------------------------------------------------------------------"
+    echo "******* Stylish Shell Banner Displayed *******"
+    echo "-------------------------------------------------------------------------------------------------"
+else
+    echo "-------------------------------------------------------------------------------------------------"
+    echo "******* Host $target is Down *******"
+    echo "-------------------------------------------------------------------------------------------------"
+fi
 
