@@ -24,7 +24,7 @@ display_subdomains() {
 perform_web_identification() {
     local domain="$1"
     # Check if whatweb is installed
-    if ! command -v whatweb &> /dev/null; then
+    if ! command -v whatweb &>/dev/null; then
         echo "whatweb is not installed. Attempting to install..."
         # Attempt to install whatweb using apt
         if sudo apt install whatweb -y; then
@@ -43,7 +43,7 @@ perform_web_identification() {
 check_host_up() {
     local host="$1"
     echo "Checking if host $host is up..."
-    if sudo nmap -PR -sn "$host" -v &> /dev/null; then
+    if sudo nmap -PR -sn "$host" -v &>/dev/null; then
         echo "Host $host is up."
         return 0
     else
@@ -65,29 +65,56 @@ find_vulnerabilities() {
     local target="$1"
     echo "Finding vulnerabilities using Nmap's default scripts for target: $target"
     # Run Nmap with default scripts for vulnerability detection
-    sudo nmap -PR -T4 --script vuln $target -v
-}
+    sudo nmap -sn -PR -T4 --script vuln $target -v
+    # Run Nmap with Nmap-vulners scripts for vulnerability detection
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    echo "Scanning Nmap-vulners External Script on "$target" START"
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    sudo nmap -sn --script nmap-vulners/ -sV -PR $target -v
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    echo "Scanning Nmap-vulners External Script on "$target" END"
+    echo "-------------------------------------------------------------------------------------------------------------------"
 
+    # Run Nmap with vulscan scripts for vulnerability detection
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    echo "Scanning vulscan External Script on "$target" START"
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    sudo nmap -sn --script vulscan/ -sV -PR $target -v
+    echo "-------------------------------------------------------------------------------------------------------------------"
+    echo "Scanning Vulscan External Script on "$target" END"
+    echo "-------------------------------------------------------------------------------------------------------------------"
+}
 
 # Function to display stylish shell banner
 display_banner() {
-local domain="$1"
-echo "                                              "
-echo "      -------- "$domain" ---------         " 
-echo "      _   _           _     _                 "  
-echo " | | | |         | |   (_)                    "
-echo " | |_| | ___  ___| |_   _ ___   _   _ _ __    "
-echo " |  _  |/ _ \/ __| __| | / __| | | | | '_ \   "
-echo " | | | | (_) \__ \ |_  | \__ \ | |_| | |_) |  "
-echo " \_| |_/\___/|___/\__| |_|___/  \__,_| .__/   "
-echo "                                   | |        "
-echo "                                   |_|        "
-echo "                                              "
-echo "                                              "
-echo "                                              "
+    local domain="$1"
+    echo "                                              "
+    echo "      -------- "$domain" ---------            "
+    echo "      _   _           _     _                 "
+    echo " | | | |         | |   (_)                    "
+    echo " | |_| | ___  ___| |_   _ ___   _   _ _ __    "
+    echo " |  _  |/ _ \/ __| __| | / __| | | | | '_ \   "
+    echo " | | | | (_) \__ \ |_  | \__ \ | |_| | |_) |  "
+    echo " \_| |_/\___/|___/\__| |_|___/  \__,_| .__/   "
+    echo "                                   | |        "
+    echo "                                   |_|        "
+    echo "                                              "
+    echo "                                              "
+    echo "                                              "
 }
 
-
+echo "                                                     "
+echo "                                                     "
+echo "  ██   ██  █████  ███████ ████████  █████  ██████    "
+echo "  ██   ██ ██   ██ ██         ██    ██   ██ ██   ██   "
+echo "  ███████ ███████ ███████    ██    ███████ ██████    "
+echo "  ██   ██ ██   ██      ██    ██    ██   ██ ██   ██   "
+echo "  ██   ██ ██   ██ ███████    ██    ██   ██ ██   ██   "
+echo "                                                     "
+echo "        ------- The God Of Demon -------             "
+echo "                                                     "
+echo "                                                     "
+                                               
 # Step 1: Asking the user to enter the target IP address or domain name
 echo "Step 1: Please enter the target IP address or domain name:"
 read target
@@ -125,30 +152,43 @@ if [[ "$response" == "Y" || "$response" == "y" ]]; then
     echo "Performing web identification on the default target: $target"
     # Perform web identification on the default target
     perform_web_identification "$target"
-echo "---------------------------------------------------------------------------------------------------------------------------"
-echo "******* Step 3  Web Identification For "$target" Completed Successfully *******"
-echo "---------------------------------------------------------------------------------------------------------------------------"
+    echo "---------------------------------------------------------------------------------------------------------------------------"
+    echo "******* Step 3  Web Identification For "$target" Completed Successfully *******"
+    echo "---------------------------------------------------------------------------------------------------------------------------"
 
-# Step 4: Check if the host is up using nmap
+    # Step 4: Check if the host is up using nmap
     echo "Step 4: Checking if the host is up using nmap..."
     if check_host_up "$target"; then
         echo "-------------------------------------------------------------------------------------------------------------------"
         echo "Stylish Banner for Host $target"
         echo "-------------------------------------------------------------------------------------------------------------------"
+
+        # Display stylish shell banner
         display_banner "$target"
         echo "-------------------------------------------------------------------------------------------------------------------"
         echo "******* Step 4 Host Up checking Completed Successfully *******"
         echo "-------------------------------------------------------------------------------------------------------------------"
+
+        # Step 5: Perform port scanning on the host
         echo "Step 5: Performing port scanning on host $target..."
         perform_port_scanning "$target"
         echo "-------------------------------------------------------------------------------------------------------------------"
-        echo "******* Step 5 Port Scanning Completed Successfully *******"
+        echo "******* Step 5 Port Scanning With Aggressive Scan Completed Successfully *******"
         echo "-------------------------------------------------------------------------------------------------------------------"
+
+        # Step 6: Find vulnerabilities using Nmap's scripts
+        echo "Step 6: Performing vulnerability detection using Nmap's default scripts..."
+        find_vulnerabilities "$target"
+        echo "-------------------------------------------------------------------------------------------------------------------"
+        echo "******* Step 6 Vulnerability Detection Completed Successfully *******"
+        echo "-------------------------------------------------------------------------------------------------------------------"
+
     else
+        # If the host is down, display a message
         echo "-------------------------------------------------------------------------------------------------------------------"
         echo "Host $target is Down. Cannot Display Banner or Perform Port Scanning."
         echo "-------------------------------------------------------------------------------------------------------------------"
-fi
+    fi
 
 else
     # Ask user to select subdomains for web identification
@@ -171,13 +211,13 @@ else
     echo "Performing web identification on selected subdomains..."
     for subdomain in "${selected_subdomains[@]}"; do
         perform_web_identification "$subdomain"
-echo "--------------------------------------------------------------------------------------------------------------------------"
-echo "******* Web Identification for target "${selected_subdomains[@]}" Completed Successfully *******"
-echo "--------------------------------------------------------------------------------------------------------------------------"
+        echo "--------------------------------------------------------------------------------------------------------------------------"
+        echo "******* Web Identification for target "${selected_subdomains[@]}" Completed Successfully *******"
+        echo "--------------------------------------------------------------------------------------------------------------------------"
     done
-echo "--------------------------------------------------------------------------------------------------------------------------"
-echo "******* Step 3 Web Identification Completed Successfully *******"
-echo "--------------------------------------------------------------------------------------------------------------------------"
+    echo "--------------------------------------------------------------------------------------------------------------------------"
+    echo "******* Step 3 Web Identification Completed Successfully *******"
+    echo "--------------------------------------------------------------------------------------------------------------------------"
 
     # Step 4: Check if the hosts are up using nmap
     echo "----------------------------------------------------------------------------------------------------------------------"
@@ -186,14 +226,25 @@ echo "--------------------------------------------------------------------------
         if check_host_up "$subdomain"; then
             echo "--------------------------------------------------------------------------------------------------------------"
             echo "Stylish Banner for Host $subdomain"
-            display_banner "$subdomain"   
+
+            # Display stylish shell banner
+            display_banner "$subdomain"
             echo "--------------------------------------------------------------------------------------------------------------"
             echo "******* Step 4 Host Up checking Completed Successfully *******"
             echo "--------------------------------------------------------------------------------------------------------------"
+
+            # Step 5: Perform port scanning on the host
             echo "Step 5: Performing port scanning on host $subdomain..."
             perform_port_scanning "$subdomain"
             echo "--------------------------------------------------------------------------------------------------------------"
             echo "******* Step 5 Port Scanning Completed Successfully *******"
+            echo "--------------------------------------------------------------------------------------------------------------"
+
+            # Step 6: Find vulnerabilities using Nmap's scripts
+            echo "Step 6: Performing vulnerability detection using Nmap's default scripts..."
+            find_vulnerabilities "$subdomain"
+            echo "--------------------------------------------------------------------------------------------------------------"
+            echo "******* Step 6 Vulnerability Detection Completed Successfully *******"
             echo "--------------------------------------------------------------------------------------------------------------"
         else
             echo "--------------------------------------------------------------------------------------------------------------"
@@ -201,7 +252,5 @@ echo "--------------------------------------------------------------------------
             echo "--------------------------------------------------------------------------------------------------------------"
         fi
     done
-   
+
 fi
-
-
