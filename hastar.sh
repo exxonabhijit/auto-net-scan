@@ -85,6 +85,33 @@ find_vulnerabilities() {
     echo "-------------------------------------------------------------------------------------------------------------------"
 }
 
+# Function to perform directory enumeration using Dirsearch
+perform_dirsearch() {
+    local domain="$1"
+    local output_folder="$HOME/Desktop/dirsearch_output"
+    
+    # Create the output folder if it doesn't exist
+    mkdir -p "$output_folder"
+    
+    echo "Performing directory enumeration using Dirsearch for domain: $domain"
+    
+    # 1. Simple Usage
+    echo "1. Performing simple usage Dirsearch..."
+    sudo dirsearch -u "$domain" -o "$output_folder/simple_usage.txt"
+    echo "Simple usage Dirsearch completed. Output saved to: $output_folder/simple_usage.txt"
+    
+    # 2. Recursive Scanning
+    echo "2. Performing recursive scanning Dirsearch..."
+    sudo dirsearch -u "$domain" -e php,asp,aspx,jsp,html -r -o "$output_folder/recursive_scan.txt"
+    echo "Recursive scanning Dirsearch completed. Output saved to: $output_folder/recursive_scan.txt"
+    
+    # 3. Using Threads
+    echo "3. Performing Dirsearch with multiple threads..."
+    sudo dirsearch -u "$domain" -e php,asp,aspx,jsp,html -t 10 -o "$output_folder/threads_scan.txt"
+    echo "Dirsearch with multiple threads completed. Output saved to: $output_folder/threads_scan.txt"
+}
+
+
 # Function to display stylish shell banner
 display_banner() {
     local domain="$1"
@@ -183,6 +210,13 @@ if [[ "$response" == "Y" || "$response" == "y" ]]; then
         echo "******* Step 6 Vulnerability Detection Completed Successfully *******"
         echo "-------------------------------------------------------------------------------------------------------------------"
 
+        # Step 7: Find directories using Dirsearch tool
+        echo "Step 7: Performing directorie detection using dirsearch tool..."
+        perform_dirsearch "$target"
+        echo "-------------------------------------------------------------------------------------------------------------------"
+        echo "******* Step 7 Performing directorie detection using dirsearch tool Completed Successfully *******"
+        echo "-------------------------------------------------------------------------------------------------------------------"
+
     else
         # If the host is down, display a message
         echo "-------------------------------------------------------------------------------------------------------------------"
@@ -245,6 +279,13 @@ else
             find_vulnerabilities "$subdomain"
             echo "--------------------------------------------------------------------------------------------------------------"
             echo "******* Step 6 Vulnerability Detection Completed Successfully *******"
+            echo "--------------------------------------------------------------------------------------------------------------"
+
+            # Step 7: Find directories using Dirsearch tool
+            echo "Step 7: Performing directorie detection using dirsearch tool..."
+            find_vulnerabilities "$subdomain"
+            echo "--------------------------------------------------------------------------------------------------------------"
+            echo "******* Step 7 Performing directorie detection using dirsearch tool Completed Successfully *******"
             echo "--------------------------------------------------------------------------------------------------------------"
         else
             echo "--------------------------------------------------------------------------------------------------------------"
